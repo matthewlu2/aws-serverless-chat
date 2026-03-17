@@ -39,5 +39,32 @@ export class AwsServerlessChatStack extends cdk.Stack {
 
     const websocketEndpoint = `https://${wsApi.apiId}.execute-api.${this.region}.amazonaws.com/${stage.stageName}`;
 
+    // Lambdas
+    const connectFn = new lambdaNodejs.NodejsFunction(this, "ConnectFn", {
+      entry: "lambda/connect.ts",
+      runtime: lambda.Runtime.NODEJS_20_X,
+      environment: {
+        CONNECTIONS_TABLE: connectionsTable.tableName,
+      },
+    });
+
+    const disconnectFn = new lambdaNodejs.NodejsFunction(this, "DisconnectFn", {
+      entry: "lambda/disconnect.ts",
+      runtime: lambda.Runtime.NODEJS_20_X,
+      environment: {
+        CONNECTIONS_TABLE: connectionsTable.tableName,
+      },
+    });
+
+    const sendMessageFn = new lambdaNodejs.NodejsFunction(this, "SendMessageFn", {
+      entry: "lambda/sendMessage.ts",
+      runtime: lambda.Runtime.NODEJS_20_X,
+      environment: {
+        CONNECTIONS_TABLE: connectionsTable.tableName,
+        MESSAGES_TABLE: messagesTable.tableName,
+        WEBSOCKET_ENDPOINT: websocketEndpoint, // used by ApiGatewayManagementApi
+      },
+    });
+    
   }
 }
